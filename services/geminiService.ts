@@ -1,5 +1,5 @@
-import { GoogleGenAI, Chat, GenerateContentResponse, InputContent } from "@google/genai";
-import { Source, Message } from '../types';
+import { GoogleGenAI, Chat, GenerateContentResponse, Part } from "@google/genai";
+import { Source, Message, Sender } from '../types';
 
 const SYSTEM_INSTRUCTION = `You are "Calmly," a wise, empathetic, and modern AI companion. Your purpose is to provide a serene, non-judgmental space for users to explore their thoughts and feelings. Your voice is gentle, insightful, and reassuring.
 
@@ -41,7 +41,6 @@ BEGIN. Your first message should be a warm, gentle, and welcoming invitation to 
 `;
 
 let ai: GoogleGenAI | null = null;
-const chatInstances = new Map<string, Chat>();
 
 const getAi = (): GoogleGenAI => {
     if (ai) return ai;
@@ -56,18 +55,35 @@ const getAi = (): GoogleGenAI => {
     return ai;
 }
 
-const getChatForSession = (sessionId: string, history: Message[]): Chat => {
-    if (chatInstances.has(sessionId)) {
-        return chatInstances.get(sessionId)!;
-    }
-
+// This function now creates a new chat session on every call, using the provided history.
+// This ensures the history is always the single source of truth from localStorage and avoids stale in-memory cache.
+const createChatWithHistory = (history: Message[]): Chat => {
     const aiInstance = getAi();
     
     // Convert our Message[] format to Gemini's history format
-    const geminiHistory = history.map(msg => ({
-        role: msg.sender === 1 ? 'model' : 'user', // AI is model
-        parts: [{ text: msg.text }]
-    }));
+    const geminiHistory = history
+      .filter(msg => {
+          // Don't include the initial AI greeting as history if it's the only message
+          return !(history.length === 1 && msg.sender === Sender.AI);
+      })
+      .map(msg => {
+          const parts: Part[] = [];
+          if (msg.image) {
+              parts.push({
+                  inlineData: {
+                      data: msg.image.base64,
+                      mimeType: msg.image.mimeType
+                  }
+              });
+          }
+          if (msg.text) {
+              parts.push({ text: msg.text });
+          }
+          return {
+              role: msg.sender === Sender.AI ? 'model' : 'user',
+              parts
+          };
+      });
 
     const chat = aiInstance.chats.create({
         model: 'gemini-2.5-flash',
@@ -78,39 +94,46 @@ const getChatForSession = (sessionId: string, history: Message[]): Chat => {
             topP: 0.9,
             tools: [{googleSearch: {}}],
         },
-        // history: geminiHistory, // History loading is more complex with images, handle it in sendMessage
+        history: geminiHistory,
     });
     
-    chatInstances.set(sessionId, chat);
     return chat;
 };
 
 export const sendMessage = async (
-    sessionId: string, 
+    sessionId: string, // Kept for API consistency, not used in createChatWithHistory
     messageText: string,
     history: Message[],
     image?: { base64: string; mimeType: string }
 ): Promise<{ text: string; sources: Source[] }> => {
 
-    const chat = getChatForSession(sessionId, history);
+    // Recreate chat session with the latest history to ensure consistency
+    const chat = createChatWithHistory(history);
 
-    const content: InputContent[] = [];
-
+    // Construct the message payload for the API
+    let contentToSend: string | Part[];
     if (image) {
-        content.push({
-            inlineData: {
-                data: image.base64,
-                mimeType: image.mimeType
-            }
-        });
+        // For multimodal messages, send an array of Parts
+        contentToSend = [
+            {
+                inlineData: {
+                    data: image.base64,
+                    mimeType: image.mimeType
+                }
+            },
+            { text: messageText }
+        ];
+    } else {
+        // For text-only messages, send a simple string
+        contentToSend = messageText;
     }
-
-    if (messageText) {
-        content.push({ text: messageText });
+    
+    if (!messageText.trim() && !image) {
+        return { text: '', sources: [] };
     }
 
     try {
-        const response: GenerateContentResponse = await chat.sendMessage({ parts: content });
+        const response: GenerateContentResponse = await chat.sendMessage(contentToSend);
         const text = response.text;
 
         const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
