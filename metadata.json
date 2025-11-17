@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Calmly",
+  "description": "Your friendly AI companion and mood tracker for emotional well-being.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}

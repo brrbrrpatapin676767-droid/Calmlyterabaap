@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF--8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calmly | Your AI Companion</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'dark-bg': '#0D0C1D',
+              'dark-bg-secondary': '#16152C',
+              'dark-sidebar': '#111024',
+              'light-bg': '#F5F7FA',
+              'light-bg-secondary': '#FFFFFF',
+              'light-sidebar': '#E8ECF1',
+              'accent': '#00A9FF',
+              'accent-dark': '#0088CC',
+              'accent-glow': '#00A9FF',
+              'gradient-start': '#00A9FF',
+              'gradient-end': '#4A00E0',
+              'primary-text-dark': '#E0E1FF',
+              'secondary-text-dark': '#A1A1D8',
+              'primary-text-light': '#16152C',
+              'secondary-text-light': '#5A5A89',
+            },
+            keyframes: {
+              'fade-in': {
+                'from': { opacity: '0', transform: 'translateY(10px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in-down': {
+                'from': { opacity: '0', transform: 'translateY(-10px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'fade-in-up': {
+                'from': { opacity: '0', transform: 'translateY(20px)' },
+                'to': { opacity: '1', transform: 'translateY(0)' },
+              },
+              'glow': {
+                '0%, 100%': { boxShadow: '0 0 15px 0px var(--glow-color)' },
+                '50%': { boxShadow: '0 0 25px 5px var(--glow-color)' },
+              },
+              'float': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
+              },
+              'pulse-slow': {
+                '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                '50%': { opacity: '0.7', transform: 'scale(1.05)' },
+              },
+              'logo-draw': {
+                'from': { 'stroke-dashoffset': '1', opacity: '0' },
+                '70%': { opacity: '1' },
+                'to': { 'stroke-dashoffset': '0', opacity: '1' },
+              },
+              'logo-text-fade': {
+                'from': { opacity: '0' },
+                'to': { opacity: '1' },
+              },
+              'splash-fade-out': {
+                'from': { opacity: '1' },
+                'to': { opacity: '0' },
+              },
+              'aurora': {
+                '0%': { backgroundPosition: '0% 50%' },
+                '50%': { backgroundPosition: '100% 50%' },
+                '100%': { backgroundPosition: '0% 50%' },
+              }
+            },
+            animation: {
+              'fade-in': 'fade-in 0.5s ease-out forwards',
+              'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
+              'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+              'glow': 'glow 4s ease-in-out infinite',
+              'float': 'float 6s ease-in-out infinite',
+              'pulse-slow': 'pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'logo-draw': 'logo-draw 1.2s ease-in-out forwards',
+              'logo-text-fade': 'logo-text-fade 0.8s ease-in forwards',
+              'splash-fade-out': 'splash-fade-out 0.5s ease-in forwards',
+              'aurora': 'aurora 15s ease-in-out infinite',
+            }
+          }
+        }
+      }
+    </script>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>
