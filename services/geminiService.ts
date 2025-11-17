@@ -40,10 +40,9 @@ LANGUAGE & FORMATTING:
 BEGIN. Your first message should be a warm, gentle, and welcoming invitation to share.
 `;
 
-let ai: GoogleGenAI | null = null;
-
+// This function lazily initializes the GoogleGenAI client.
+// A new instance is created on demand to ensure the latest API key is used.
 const getAi = (): GoogleGenAI => {
-    if (ai) return ai;
     if (!process.env.API_KEY) {
       console.warn("API_KEY environment variable not found. Using a placeholder. This will not work for actual API calls.");
     }
@@ -51,8 +50,7 @@ const getAi = (): GoogleGenAI => {
     if(!apiKey) {
       throw new Error("Gemini API key is not configured. Please set the API_KEY environment variable.");
     }
-    ai = new GoogleGenAI({ apiKey });
-    return ai;
+    return new GoogleGenAI({ apiKey });
 }
 
 // This function now creates a new chat session on every call, using the provided history.
@@ -106,6 +104,10 @@ export const sendMessage = async (
     history: Message[],
     image?: { base64: string; mimeType: string }
 ): Promise<{ text: string; sources: Source[] }> => {
+    
+    if (!messageText.trim() && !image) {
+        return { text: '', sources: [] };
+    }
 
     // Recreate chat session with the latest history to ensure consistency
     const chat = createChatWithHistory(history);
@@ -113,23 +115,20 @@ export const sendMessage = async (
     // Construct the message payload for the API
     let contentToSend: string | Part[];
     if (image) {
-        // For multimodal messages, send an array of Parts
-        contentToSend = [
-            {
-                inlineData: {
-                    data: image.base64,
-                    mimeType: image.mimeType
-                }
-            },
-            { text: messageText }
-        ];
+        const parts: Part[] = [{
+            inlineData: {
+                data: image.base64,
+                mimeType: image.mimeType
+            }
+        }];
+        // Only add the text part if there is actual text to send
+        if (messageText.trim()) {
+            parts.push({ text: messageText });
+        }
+        contentToSend = parts;
     } else {
         // For text-only messages, send a simple string
         contentToSend = messageText;
-    }
-    
-    if (!messageText.trim() && !image) {
-        return { text: '', sources: [] };
     }
 
     try {
