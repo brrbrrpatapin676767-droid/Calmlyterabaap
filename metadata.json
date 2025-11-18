@@ -1,8 +1,5 @@
 {
-  "name": "Copy of Calmly",
-  "description": "Your friendly AI companion and mood tracker for emotional well-being.",
-  "requestFramePermissions": [
-    "microphone",
-    "camera"
-  ]
+  "name": "Gemini AI Chat",
+  "description": "A simple chat interface to interact with the Gemini AI.",
+  "requestFramePermissions": []
 }
